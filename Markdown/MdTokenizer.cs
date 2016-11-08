@@ -1,32 +1,94 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Markdown
 {
-    public class MdTokenizer : Tokenizer
+    public class MdTokenizer
     {
-        public MdTokenizer(string input) : base(input)
+        private Tokenizer tokenizer;
+
+        private List<string> tagsFindOrder = new List<string>()
         {
+            "__",
+            "_"
+        };
+
+        private Dictionary<string, Func<Token[], Token>> tagTokens = new Dictionary<string, Func<Token[], Token>>()
+        {
+            ["__"] = (tokens) => new BoldToken(tokens),
+            ["_"] = (tokens) => new ItalicToken(tokens)
+        };
+
+        public MdTokenizer(string input)
+        {
+            tokenizer = new Tokenizer(input);
         }
 
         public IEnumerable<Token> ReadTokens()
         {
-            throw new NotImplementedException();
+            while (!tokenizer.EndOfString)
+            {
+                var isTag = false;
+                foreach (var tag in tagsFindOrder)
+                {
+                    if (StandsOnTagExpression(tag))
+                    {
+                        SkipTag(tag);
+                        var body = ReadTagBody(tag);
+                        SkipTag(tag);
+                        var innerTokens = new MdTokenizer(body).ReadTokens();
+                        yield return tagTokens[tag](innerTokens.ToArray());
+                        isTag = true;
+                        break;
+                    }
+                }
+                if (isTag)
+                    continue;
+                yield return new RawToken(ReadRawText().Unescape());
+            }
         }
 
-        private string ReadWord()
+        private bool StandsOnTagExpression(string tag)
         {
-            throw new NotImplementedException();
+            return StandsOnTag(tag) && HasClosedTag(tag) &&
+                   tokenizer.Input.GetCharAt(tokenizer.Position + tag.Length) != ' ' &&
+                   tokenizer.Input.GetCharAt(FindNextTagPosition(tag)-1) != ' ';
         }
 
-        private string ReadSpaces()
+        private bool StandsOnTag(string tag)
         {
-            throw new NotImplementedException();
+            return tokenizer.StartsWithFromCurrent(tag);
         }
 
-        private string ReadUnderscores()
+        private bool HasClosedTag(string tag)
         {
-            throw new NotImplementedException();
+            return FindNextTagPosition(tag) >= 0;
+        }
+
+        private int FindNextTagPosition(string tag)
+        {
+            return tokenizer.Input.IndexOf(tag, tokenizer.Position + tag.Length, StringComparison.Ordinal);
+        }
+
+        private string ReadTagBody(string tag)
+        {
+            var body = "";
+            do
+            {
+                body += tokenizer.ReadUntilUnescaped(tag[0]);
+            } while (!StandsOnTag(tag));
+            return body;
+        }
+
+        private void SkipTag(string tag)
+        {
+            tokenizer.Position += tag.Length;
+        }
+
+        private string ReadRawText()
+        {
+            return tokenizer.ReadUntilUnescaped('_');
         }
     }
 }

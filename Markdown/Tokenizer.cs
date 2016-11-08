@@ -1,50 +1,65 @@
 ﻿using System;
+using System.Linq;
 
 namespace Markdown
 {
     public class Tokenizer
     {
-        protected readonly string Input;
-        protected int Position;
+        public string Input { get; }
+        public int Position { get; set; }
         public char CurrentChar => Input[Position];
         public bool EndOfString => Position >= Input.Length;
 
-        protected Tokenizer(string input)
+        public Tokenizer(string input)
         {
             Input = input;
         }
 
-        protected string ReadUntil(params char[] stopChars)
+        private string ExtractReadString(Action readAction)
         {
-            throw new NotImplementedException();
+            var startPosition = Position;
+            readAction();
+            if (startPosition < Input.Length)
+                return Input.Substring(startPosition, Position - startPosition);
+            return "";
         }
 
-        protected string ReadUntil(Func<char, bool> isStopChar)
+        public string ReadUntil(params char[] stopChars)
         {
-            throw new NotImplementedException();
+            return ExtractReadString(() =>
+            {
+                do
+                {
+                    Position++;
+                } while (!EndOfString && !stopChars.Contains(CurrentChar));
+            });
         }
 
-        protected string ReadEscapedUntil(char stopChar)
+        public string ReadUntil(Func<char, bool> isStopChar)
         {
-            var result = "";
-            while (!EndOfString && CurrentChar != stopChar)
-                result += ReadEscapedChar();
-            return result;
+            return ExtractReadString(() =>
+            {
+                do
+                {
+                    Position++;
+                } while (!EndOfString && !isStopChar(CurrentChar));
+            });
         }
 
-        private string ReadEscapedChar()
+        public string ReadUntilUnescaped(char stopChar)
         {
-            if (CurrentChar == '\\')
-                Position++;
-            if (EndOfString)
-                return "";
-            return ReadChar().ToString();
+            var escaping = false;
+            return ReadUntil(c =>
+            {
+                var result = !escaping && c == stopChar;
+                escaping = !escaping && c == '\\';
+                return result;
+            });
         }
 
-        private char ReadChar()
+        public bool StartsWithFromCurrent(string sample)
         {
-            Position++;
-            return Input[Position-1];
+            return Input.StartsWithFrom(Position, sample);
         }
     }
 }
