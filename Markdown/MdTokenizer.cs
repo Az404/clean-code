@@ -14,71 +14,121 @@ namespace Markdown
             "_"
         };
 
-        private Dictionary<string, Func<Token[], Token>> tagTokens = new Dictionary<string, Func<Token[], Token>>()
+        private Dictionary<string, Func<FormattedToken>> tagTokens = new Dictionary<string, Func<FormattedToken>>()
         {
-            ["__"] = (tokens) => new BoldToken(tokens),
-            ["_"] = (tokens) => new ItalicToken(tokens)
+            ["__"] = () => new BoldToken(),
+            ["_"] = () => new ItalicToken()
         };
+
+        private Dictionary<string, HashSet<string>> allowedInnerTags = new Dictionary<string, HashSet<string>>()
+        {
+            ["__"] = new HashSet<string>() { "_" },
+            ["_"] = new HashSet<string>()
+        };
+
+        private Stack<string> openedTags;
+        private Stack<FormattedToken> openedTokens;
+        private List<Token> closedTokens = new List<Token>();
 
         public MdTokenizer(string input)
         {
             tokenizer = new Tokenizer(input);
+            openedTags = new Stack<string>();
+            openedTokens = new Stack<FormattedToken>();
         }
 
         public IEnumerable<Token> ReadTokens()
+        {
+            return ReadClosedTokens().Concat(ReadUnclosedTokens());
+        }
+
+        private IEnumerable<Token> ReadClosedTokens()
         {
             while (!tokenizer.EndOfString)
             {
                 var isTag = false;
                 foreach (var tag in tagsFindOrder)
                 {
-                    if (StandsOnTagExpression(tag))
+                    if (StandsOnClosingTag(tag) && IsOnStackTop(tag) && !IsLastTokenEmpty())
                     {
-                        SkipTag(tag);
-                        var body = ReadTagBody(tag);
-                        SkipTag(tag);
-                        var innerTokens = new MdTokenizer(body).ReadTokens();
-                        yield return tagTokens[tag](innerTokens.ToArray());
-                        isTag = true;
-                        break;
-                    }
+                        openedTags.Pop();
+                        CloseToken(openedTokens.Pop());
+
+                    } else if (StandsOnOpeningTag(tag) && IsOpeningTagAllowed(tag))
+                        OpenToken(tag);
+                    else 
+                        continue;
+
+                    isTag = true;
+                    SkipTag(tag);
+                    break;
                 }
                 if (isTag)
                     continue;
-                yield return new RawToken(ReadRawText().Unescape());
+                CloseToken(new RawToken(ReadRawText().Unescape()));
             }
+            return closedTokens;
         }
 
-        private bool StandsOnTagExpression(string tag)
+        private void OpenToken(string tag)
         {
-            return StandsOnTag(tag) && HasClosedTag(tag) &&
-                   tokenizer.Input.GetCharAt(tokenizer.Position + tag.Length) != ' ' &&
-                   tokenizer.Input.GetCharAt(FindNextTagPosition(tag)-1) != ' ';
+            openedTags.Push(tag);
+            openedTokens.Push(tagTokens[tag]());
+        }
+
+        private void CloseToken(Token token)
+        {
+            if (openedTokens.Count > 0)
+                openedTokens.Peek().Body.Add(token);
+            else
+                closedTokens.Add(token);
+        }
+
+        private bool IsOnStackTop(string tag)
+        {
+            return openedTags.Count > 0 && tag == openedTags.Peek();
+        }
+
+        private bool IsOpeningTagAllowed(string tag)
+        {
+            return openedTags.Count == 0 || allowedInnerTags[openedTags.Peek()].Contains(tag);
+        }
+
+        private bool IsLastTokenEmpty()
+        {
+            return openedTokens.Count != 0 && openedTokens.Peek().Body.Count == 0;
+        }
+
+        private bool StandsOnOpeningTag(string tag)
+        {
+            var afterTagChar = GetAfterTagChar(tag);
+            return StandsOnTag(tag) && afterTagChar != ' ' && afterTagChar != null;
+        }
+
+        private bool StandsOnClosingTag(string tag)
+        {
+            var beforeTagChar = GetBeforeTagChar();
+            return StandsOnTag(tag) && beforeTagChar != ' ' && beforeTagChar != null;
         }
 
         private bool StandsOnTag(string tag)
         {
-            return tokenizer.StartsWithFromCurrent(tag);
+            var beforeTagChar = GetBeforeTagChar();
+            var afterTagChar = GetAfterTagChar(tag);
+            return tokenizer.StartsWithFromCurrent(tag) &&
+                !(beforeTagChar.HasValue && afterTagChar.HasValue &&
+                beforeTagChar != ' ' && afterTagChar != ' ' &&
+                (beforeTagChar.Value.IsDigit() || afterTagChar.Value.IsDigit()));
         }
 
-        private bool HasClosedTag(string tag)
+        private char? GetBeforeTagChar()
         {
-            return FindNextTagPosition(tag) >= 0;
+            return tokenizer.Input.GetCharAt(tokenizer.Position - 1);
         }
 
-        private int FindNextTagPosition(string tag)
+        private char? GetAfterTagChar(string tag)
         {
-            return tokenizer.Input.IndexOf(tag, tokenizer.Position + tag.Length, StringComparison.Ordinal);
-        }
-
-        private string ReadTagBody(string tag)
-        {
-            var body = "";
-            do
-            {
-                body += tokenizer.ReadUntilUnescaped(tag[0]);
-            } while (!StandsOnTag(tag));
-            return body;
+            return tokenizer.Input.GetCharAt(tokenizer.Position + tag.Length);
         }
 
         private void SkipTag(string tag)
@@ -89,6 +139,22 @@ namespace Markdown
         private string ReadRawText()
         {
             return tokenizer.ReadUntilUnescaped('_');
+        }
+
+        private IEnumerable<Token> ReadUnclosedTokens()
+        {
+            openedTags = new Stack<string>(openedTags);
+            openedTokens = new Stack<FormattedToken>(openedTokens);
+            while (openedTags.Count > 0)
+            {
+                var tag = openedTags.Pop();
+                var token = openedTokens.Pop();
+                yield return new RawToken(tag);
+                foreach (var subToken in token.Body)
+                {
+                    yield return subToken;
+                }
+            }
         }
     }
 }

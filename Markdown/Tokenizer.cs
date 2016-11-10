@@ -48,7 +48,7 @@ namespace Markdown
 
         public string ReadUntilUnescaped(char stopChar)
         {
-            var escaping = false;
+            var escaping = CurrentChar == '\\';
             return ReadUntil(c =>
             {
                 var result = !escaping && c == stopChar;
