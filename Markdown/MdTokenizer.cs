@@ -118,7 +118,7 @@ namespace Markdown
             return tokenizer.StartsWithFromCurrent(tag) &&
                 !(beforeTagChar.HasValue && afterTagChar.HasValue &&
                 beforeTagChar != ' ' && afterTagChar != ' ' &&
-                (beforeTagChar.Value.IsDigit() || afterTagChar.Value.IsDigit()));
+                (char.IsDigit(beforeTagChar.Value) || char.IsDigit(afterTagChar.Value)));
         }
 
         private char? GetBeforeTagChar()

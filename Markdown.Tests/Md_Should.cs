@@ -51,7 +51,7 @@ namespace Markdown.Tests
         [TestCase("_abc5_ d_", ExpectedResult = "<em>abc5</em> d_", TestName = "_ on word boundary with numbers works")]
 
         [TestCase("__", ExpectedResult = "__", TestName = "regular if empty text between _")]
-        [TestCase("____", ExpectedResult = "<em>__</em>", TestName = "regular if empty text between __")]
+        [TestCase("____", ExpectedResult = "____", TestName = "regular if empty text between __")]
         public string RenderTextWithFormatting_Correctly(string text)
         {
             return Md.Render(text);

@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoldToken.cs" />
-    <Compile Include="CharExtensions.cs" />
     <Compile Include="FormattedToken.cs" />
     <Compile Include="HtmlRenderer.cs" />
     <Compile Include="ItalicToken.cs" />
