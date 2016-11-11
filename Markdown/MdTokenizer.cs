@@ -49,6 +49,8 @@ namespace Markdown
                 var isTag = false;
                 foreach (var tag in tagsFindOrder)
                 {
+                    if (!CanBeUsedInCurrentContext(tag))
+                        continue;
                     if (StandsOnClosingTag(tag) && IsOnStackTop(tag) && !IsLastTokenEmpty())
                     {
                         openedTags.Pop();
@@ -56,7 +58,9 @@ namespace Markdown
 
                     } else if (StandsOnOpeningTag(tag) && IsOpeningTagAllowed(tag))
                         OpenToken(tag);
-                    else 
+                    else if (StandsOnTag(tag))
+                        break;
+                    else
                         continue;
 
                     isTag = true;
@@ -82,6 +86,11 @@ namespace Markdown
                 openedTokens.Peek().Body.Add(token);
             else
                 closedTokens.Add(token);
+        }
+
+        private bool CanBeUsedInCurrentContext(string tag)
+        {
+            return IsOnStackTop(tag) && !IsLastTokenEmpty() || IsOpeningTagAllowed(tag);
         }
 
         private bool IsOnStackTop(string tag)
