@@ -8,10 +8,5 @@
         {
             Value = value;
         }
-
-        public override string ToHtml()
-        {
-            return Value;
-        }
     }
 }

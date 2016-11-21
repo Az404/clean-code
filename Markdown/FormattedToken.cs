@@ -1,21 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static System.String;
 
 namespace Markdown
 {
     class FormattedToken : Token
     {
-        public List<Token> Body { get; private set; }
+        public SelectionType Type { get; }
+        public List<Token> Body { get; }
+        public List<SelectionAttribute> Attributes { get; } = new List<SelectionAttribute>();
 
-        public FormattedToken(params Token[] body)
+        public FormattedToken(SelectionType type, params Token[] body)
         {
+            Type = type;
             Body = body.ToList();
-        }
-
-        public override string ToHtml()
-        {
-            return Concat(Body.Select(token => token.ToHtml()));
         }
     }
 }

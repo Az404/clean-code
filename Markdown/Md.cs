@@ -2,9 +2,10 @@
 {
     public static class Md
     {
-        public static string Render(string markdownText)
+        public static string Render(string markdownText, params SelectionAttribute[] customAttributes)
         {
-            return HtmlRenderer.Render(new MdTokenizer(markdownText).ReadTokens());
+            var htmlRenderer = new HtmlRenderer(customAttributes);
+            return htmlRenderer.Render(new MdTokenizer(markdownText).ReadTokens());
         }
     }
 }

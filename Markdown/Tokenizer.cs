@@ -7,12 +7,18 @@ namespace Markdown
     {
         public string Input { get; }
         public int Position { get; set; }
-        public char CurrentChar => Input[Position];
-        public bool EndOfString => Position >= Input.Length;
+
+        public Cursor Cursor => new Cursor { Text = Input, Position = Position };
 
         public Tokenizer(string input)
         {
             Input = input;
+        }
+
+        public Tokenizer(Cursor cursor)
+        {
+            Input = cursor.Text;
+            Position = cursor.Position;
         }
 
         private string ExtractReadString(Action readAction)
@@ -31,7 +37,7 @@ namespace Markdown
                 do
                 {
                     Position++;
-                } while (!EndOfString && !stopChars.Contains(CurrentChar));
+                } while (Cursor.CurrentChar != null && !stopChars.Contains(Cursor.CurrentChar.Value));
             });
         }
 
@@ -42,24 +48,19 @@ namespace Markdown
                 do
                 {
                     Position++;
-                } while (!EndOfString && !isStopChar(CurrentChar));
+                } while (Cursor.CurrentChar != null && !isStopChar(Cursor.CurrentChar.Value));
             });
         }
 
-        public string ReadUntilUnescaped(char stopChar)
+        public string ReadUntilUnescaped(params char[] stopChars)
         {
-            var escaping = CurrentChar == '\\';
+            var escaping = Cursor.CurrentChar == '\\';
             return ReadUntil(c =>
             {
-                var result = !escaping && c == stopChar;
+                var result = !escaping && Array.IndexOf(stopChars, c) >= 0;
                 escaping = !escaping && c == '\\';
                 return result;
             });
-        }
-
-        public bool StartsWithFromCurrent(string sample)
-        {
-            return Input.StartsWithFrom(Position, sample);
         }
     }
 }

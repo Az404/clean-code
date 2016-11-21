@@ -31,13 +31,13 @@ namespace Markdown.Tests
         [TestCase("__abc _italic_ def__",
             ExpectedResult = "<strong>abc <em>italic</em> def</strong>", TestName = "italic works inside bold")]
         [TestCase("_abc __regular__ def_",
-            ExpectedResult = "<em>abc _</em>regular__ def_", TestName = "bold isn't works inside italic")]
+            ExpectedResult = "<em>abc _</em>regular<em>_ def</em>", TestName = "bold isn't works inside italic")]
         [TestCase("___abc___",
             ExpectedResult = "<strong><em>abc</em></strong>", TestName = "triple underscore works")]
 
         [TestCase("abc_ def_", ExpectedResult = "abc_ def_", TestName = "regular if space after opening _")]
         [TestCase("abc _def _", ExpectedResult = "abc _def _", TestName = "regular if space before closing _")]
-        [TestCase("abc__ def__", ExpectedResult = "abc__ def__", TestName = "regular if space after opening __")]
+        [TestCase("abc__ def__", ExpectedResult = "abc<em>_ def</em>_", TestName = "italic if space after opening __")]
         [TestCase("abc __def __", ExpectedResult = "abc __def __", TestName = "regular if space before closing __")]
 
         [TestCase("__ab", ExpectedResult = "__ab", TestName = "regular if non-closed __")]
@@ -46,7 +46,7 @@ namespace Markdown.Tests
         [TestCase("ab_", ExpectedResult = "ab_", TestName = "regular if non-closed _")]
         [TestCase("__ab _c", ExpectedResult = "__ab _c", TestName = "regular if non-closed opening __ and _")]
         [TestCase("_ab __c", ExpectedResult = "<em>ab _</em>c", TestName = "italic if unpaired opening __ after unpaired opening _")]
-        [TestCase("d__ ab_ c", ExpectedResult = "d__ ab_ c", TestName = "regular if unpaired closing __ before unpaired closing _")]
+        [TestCase("d__ ab_ c", ExpectedResult = "d<em>_ ab</em> c", TestName = "italic if unpaired closing __ before unpaired closing _")]
         [TestCase("ab_ c__", ExpectedResult = "ab_ c__", TestName = "regular if non-opened closing __ and _")]
 
         [TestCase("_abc5_d_", ExpectedResult = "<em>abc5_d</em>", TestName = "_ inside word with numbers isn't works")]
@@ -54,9 +54,27 @@ namespace Markdown.Tests
 
         [TestCase("__", ExpectedResult = "__", TestName = "regular if empty text between _")]
         [TestCase("____", ExpectedResult = "____", TestName = "regular if empty text between __")]
+
+        [TestCase("[text](link)", ExpectedResult = "<a href=link>text</a>", TestName = "only url")]
+        [TestCase(@"[te\]xt](li\)nk)", ExpectedResult = "<a href=li)nk>te]xt</a>", TestName = "url with escaping")]
+        [TestCase("__ab [text](link) cd__", ExpectedResult = "<strong>ab <a href=link>text</a> cd</strong>", TestName = "url inside bold")]
+        [TestCase("_ab [text](link) cd_", ExpectedResult = "<em>ab <a href=link>text</a> cd</em>", TestName = "url inside italic")]
+        [TestCase("[abc", ExpectedResult = "[abc", TestName = "unclosed url")]
+        [TestCase("[abc](a", ExpectedResult = "[abc](a", TestName = "badly closed url")]
+        [TestCase("[](a)", ExpectedResult = "[](a)", TestName = "regular if empty text in url")]
+        [TestCase("[a]()", ExpectedResult = "[a]()", TestName = "url if empty link in url")]
         public string RenderTextWithFormatting_Correctly(string text)
         {
             return Md.Render(text);
+        }
+
+        [TestCase("_aa_", ExpectedResult = "<em style=abc>aa</em>", TestName = "with italic")]
+        [TestCase("__aa__", ExpectedResult = "<strong style=abc>aa</strong>", TestName = "with bold")]
+        [TestCase("[text](link)", ExpectedResult = "<a style=abc href=link>text</a>", TestName = "with url")]
+        public string RenderTextWithFormatting_AndCustomAttribute_Correctly(string text)
+        {
+            var customAttributes = new[] {new SelectionAttribute(SelectionAttributeType.Style, "abc")};
+            return Md.Render(text, customAttributes);
         }
 
         private void RenderSamples(string sample, int count)

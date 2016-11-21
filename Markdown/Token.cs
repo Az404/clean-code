@@ -2,6 +2,6 @@
 {
     public abstract class Token
     {
-        public abstract string ToHtml();
+        
     }
 }
