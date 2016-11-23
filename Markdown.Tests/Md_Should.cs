@@ -8,11 +8,20 @@ namespace Markdown.Tests
     [TestFixture]
     public class Md_Should
     {
+        private Md md;
+
+        [SetUp]
+        public void SetUp()
+        {
+            md = new Md();
+        }
+
+
         [Test]
         public void NotChangeString_WhenNoFormatting()
         {
             const string text = "Simple text";
-            Md.Render(text).Should().Be(text);
+            md.Render(text).Should().Be(text);
         }
 
         [TestCase("_italic words_", ExpectedResult = "<em>italic words</em>", TestName = "only italic")]
@@ -65,7 +74,7 @@ namespace Markdown.Tests
         [TestCase("[a]()", ExpectedResult = "[a]()", TestName = "url if empty link in url")]
         public string RenderTextWithFormatting_Correctly(string text)
         {
-            return Md.Render(text);
+            return md.Render(text);
         }
 
         [TestCase("_aa_", ExpectedResult = "<em style=abc>aa</em>", TestName = "with italic")]
@@ -73,13 +82,23 @@ namespace Markdown.Tests
         [TestCase("[text](link)", ExpectedResult = "<a style=abc href=link>text</a>", TestName = "with url")]
         public string RenderTextWithFormatting_AndCustomAttribute_Correctly(string text)
         {
-            var customAttributes = new[] {new SelectionAttribute(SelectionAttributeType.Style, "abc")};
-            return Md.Render(text, customAttributes);
+            md.CssStyle = "abc";
+            return md.Render(text);
+        }
+        
+        [TestCase("[text](page.htm)", ExpectedResult = "<a href=http://example.com/page.htm>text</a>", TestName = "when relative url")]
+        [TestCase("[text](http://google.com/search)", ExpectedResult = "<a href=http://google.com/search>text</a>", TestName = "when absolute url")]
+        [TestCase("[text](ftp://mirror.yandex.ru/)", ExpectedResult = "<a href=ftp://mirror.yandex.ru/>text</a>", TestName = "when absolute url with different protocol")]
+        [TestCase("[text](http://example.com/page.htm)", ExpectedResult = "<a href=http://example.com/page.htm>text</a>", TestName = "when absolute url starts with base url")]
+        public string RenderTextWithUrl_AndGivenBaseUrl_Correctly(string text)
+        {
+            md.BaseUrl = "http://example.com/";
+            return md.Render(text);
         }
 
         private void RenderSamples(string sample, int count)
         {
-            Md.Render(string.Concat(Enumerable.Repeat(sample, count)));
+            md.Render(string.Concat(Enumerable.Repeat(sample, count)));
         }
 
         [TestCase(100)]

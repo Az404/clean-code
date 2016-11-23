@@ -8,8 +8,8 @@
 
     public class SelectionAttribute
     {
-        public SelectionAttributeType Type { get; }
-        public string Value { get; }
+        public SelectionAttributeType Type { get; set; }
+        public string Value { get; set; }
 
         public SelectionAttribute(SelectionAttributeType type, string value)
         {
