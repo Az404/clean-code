@@ -32,6 +32,8 @@ namespace Markdown
             var result = new StringBuilder();
             foreach (var token in tokens)
             {
+                // CR: Everything unsafe should be well-separated, some kinda factory/wrapper
+                // CR: Also it violates open/closed principle
                 if (token is RawToken)
                     result.Append(((RawToken)token).Value);
                 else if (token is FormattedToken)

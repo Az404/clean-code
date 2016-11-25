@@ -2,6 +2,7 @@
 {
     public struct Cursor
     {
+        // CR: Public non-readonly fields - bad practice
         public string Text;
         public int Position;
 

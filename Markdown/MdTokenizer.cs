@@ -25,6 +25,7 @@ namespace Markdown
             BuildLanguage();
         }
 
+        // CR: Private methods after public
         private void BuildLanguage()
         {
             var openingBold = new OpeningFormattingTag("__");
@@ -47,11 +48,11 @@ namespace Markdown
             boldSelection.AllowedInnerSelections.Add(urlSelection);
 
             italicSelection.AllowedInnerSelections.Add(urlSelection);
-            
 
             stopChars = GetStopChars(selections).ToArray();
         }
 
+        // CR: Don't hide fields unless it's absolutely necessary
         private HashSet<char> GetStopChars(IEnumerable<Selection> selections)
         {
             var result = new HashSet<char>();
@@ -72,7 +73,10 @@ namespace Markdown
         {
             while (!tokenizer.Cursor.EndOfString)
             {
+                // CR: Be consistent, you either user one-line ifs or you do not
                 if (TryCloseCurrentSelection()) continue;
+
+                // CR: Can be converted to 2 very clear lines
                 var isTag = false;
                 foreach (var selection in AllowedSelections)
                 {
@@ -131,6 +135,7 @@ namespace Markdown
 
         private IEnumerable<Token> ReadUnclosedTokens()
         {
+            // CR: Don't hide fields unless it's absolutely necessary
             var openedSelections = new Stack<Selection>(this.openedSelections);
             var unclosedTokens = new Stack<FormattedToken>(tokensStorage.UnclosedTokens);
             while (openedSelections.Count > 0)

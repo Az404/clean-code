@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace Markdown
 {
+    // CR: Class visibility should be explicit
     class ClosingUrlTag : Tag
     {
         private const string Begin = "](";
@@ -12,6 +13,7 @@ namespace Markdown
 
         public override int GetLength(Cursor cursor) => Begin.Length + ExtractUrl(cursor).Length + End.Length;
 
+        // CR: Private methods should go after public
         private string ExtractUrl(Cursor cursor)
         {
             if (!cursor.StartsWithFromCurrent(Begin))

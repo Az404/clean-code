@@ -16,6 +16,7 @@ namespace Markdown.Tests
             return new Tokenizer(input).ReadUntil(stopChars);
         }
 
+        // CR: Make two tests with different names
         private static IEnumerable<TestCaseData> ReadUntilLambdaIsTrue_TestCases()
         {
             yield return new TestCaseData("0120123456", (Func<char, bool>) (c => int.Parse(c.ToString()) > 2))

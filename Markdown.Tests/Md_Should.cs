@@ -1,4 +1,5 @@
-﻿using System;
+﻿// CR: VVVV Unused reference there
+using System;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
@@ -96,6 +97,7 @@ namespace Markdown.Tests
             return md.Render(text);
         }
 
+        // CR: Order
         private void RenderSamples(string sample, int count)
         {
             md.Render(string.Concat(Enumerable.Repeat(sample, count)));

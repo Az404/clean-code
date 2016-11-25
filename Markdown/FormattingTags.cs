@@ -1,5 +1,7 @@
 ﻿namespace Markdown
 {
+    // CR: Class visibility should be explicit
+    // CR: One class = one file, use folders for grouping
     class OpeningFormattingTag : FormattingTag
     {
         public OpeningFormattingTag(string name) : base(name)

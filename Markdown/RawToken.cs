@@ -1,5 +1,6 @@
 ﻿namespace Markdown
 {
+    // CR: Visibility
     class RawToken : Token
     {
         public string Value { get; }

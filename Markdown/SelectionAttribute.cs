@@ -1,5 +1,6 @@
 ﻿namespace Markdown
 {
+    // CR: One class = one file
     public enum SelectionAttributeType
     {
         Url,

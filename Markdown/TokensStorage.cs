@@ -2,6 +2,7 @@
 
 namespace Markdown
 {
+    // CR: Visibility
     class TokensStorage
     {
         private readonly Stack<FormattedToken> openedTokens = new Stack<FormattedToken>();

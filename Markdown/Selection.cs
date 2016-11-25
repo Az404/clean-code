@@ -2,6 +2,7 @@
 
 namespace Markdown
 {
+    // CR: Visibility
     class Selection
     {
         public Tag OpeningTag { get; }

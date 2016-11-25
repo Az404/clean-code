@@ -2,6 +2,8 @@
 
 namespace Markdown.Tests
 {
+    // CR: Yep, visibility, even in tests
+    // CR: Bad name, you're not testing string, you're testing extensions
     [TestFixture]
     class String_Should
     {
