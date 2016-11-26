@@ -52,7 +52,7 @@
     <Compile Include="Tags\ClosingFormattingTag.cs" />
     <Compile Include="Tags\OpeningFormattingTag.cs" />
     <Compile Include="Tokens\FormattedToken.cs" />
-    <Compile Include="Tags\FormattingTags.cs" />
+    <Compile Include="Tags\FormattingTag.cs" />
     <Compile Include="HtmlRenderer.cs" />
     <Compile Include="Md.cs" />
     <Compile Include="MdTokenizer.cs" />
