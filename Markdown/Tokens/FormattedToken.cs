@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Markdown
+namespace Markdown.Tokens
 {
-    class FormattedToken : Token
+    public class FormattedToken : Token
     {
         public SelectionType Type { get; }
         public List<Token> Body { get; }
@@ -13,6 +13,11 @@ namespace Markdown
         {
             Type = type;
             Body = body.ToList();
+        }
+
+        public override string Render(ITokenRenderer renderer)
+        {
+            return renderer.Render(this);
         }
     }
 }

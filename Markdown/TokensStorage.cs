@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Markdown.Tokens;
 
 namespace Markdown
 {
-    // CR: Visibility
-    class TokensStorage
+    public class TokensStorage
     {
         private readonly Stack<FormattedToken> openedTokens = new Stack<FormattedToken>();
         private readonly List<Token> closedTokens = new List<Token>();

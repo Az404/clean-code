@@ -1,12 +1,5 @@
 ﻿namespace Markdown
 {
-    // CR: One class = one file
-    public enum SelectionAttributeType
-    {
-        Url,
-        Style
-    }
-
     public class SelectionAttribute
     {
         public SelectionAttributeType Type { get; set; }

@@ -8,7 +8,7 @@ namespace Markdown
         public string Input { get; }
         public int Position { get; set; }
 
-        public Cursor Cursor => new Cursor { Text = Input, Position = Position };
+        public Cursor Cursor => new Cursor(Input, Position);
 
         public Tokenizer(string input)
         {

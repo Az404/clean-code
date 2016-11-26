@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Markdown.Tags;
+using Markdown.Tokens;
 
 namespace Markdown
 {
@@ -24,8 +26,23 @@ namespace Markdown
 
             BuildLanguage();
         }
+        
+        public static HashSet<char> GetStopChars(IEnumerable<Selection> selections)
+        {
+            var result = new HashSet<char>();
+            foreach(var selection in selections)
+            {
+                result.Add(selection.OpeningTag.Name[0]);
+                result.Add(selection.ClosingTag.Name[0]);
+            }
+            return result;
+        }
 
-        // CR: Private methods after public
+        public IEnumerable<Token> ReadTokens()
+        {
+            return ReadClosedTokens().Concat(ReadUnclosedTokens());
+        }
+
         private void BuildLanguage()
         {
             var openingBold = new OpeningFormattingTag("__");
@@ -52,42 +69,16 @@ namespace Markdown
             stopChars = GetStopChars(selections).ToArray();
         }
 
-        // CR: Don't hide fields unless it's absolutely necessary
-        private HashSet<char> GetStopChars(IEnumerable<Selection> selections)
-        {
-            var result = new HashSet<char>();
-            foreach(var selection in selections)
-            {
-                result.Add(selection.OpeningTag.Name[0]);
-                result.Add(selection.ClosingTag.Name[0]);
-            }
-            return result;
-        }
-
-        public IEnumerable<Token> ReadTokens()
-        {
-            return ReadClosedTokens().Concat(ReadUnclosedTokens());
-        }
-
         private IEnumerable<Token> ReadClosedTokens()
         {
             while (!tokenizer.Cursor.EndOfString)
             {
-                // CR: Be consistent, you either user one-line ifs or you do not
-                if (TryCloseCurrentSelection()) continue;
-
-                // CR: Can be converted to 2 very clear lines
-                var isTag = false;
-                foreach (var selection in AllowedSelections)
-                {
-                    if (TryOpenSelection(selection))
-                    {
-                        isTag = true;
-                        break;
-                    }
-                }
-                if (isTag)
+                if (TryCloseCurrentSelection())
                     continue;
+                
+                if (AllowedSelections.Any(TryOpenSelection))
+                    continue;
+
                 tokensStorage.AddRawToken(new RawToken(ReadRawText().Unescape()));
             }
             return tokensStorage.ClosedTokens;
@@ -135,13 +126,12 @@ namespace Markdown
 
         private IEnumerable<Token> ReadUnclosedTokens()
         {
-            // CR: Don't hide fields unless it's absolutely necessary
-            var openedSelections = new Stack<Selection>(this.openedSelections);
-            var unclosedTokens = new Stack<FormattedToken>(tokensStorage.UnclosedTokens);
-            while (openedSelections.Count > 0)
+            var reversedOpenedSelections = new Stack<Selection>(this.openedSelections);
+            var reversedUnclosedTokens = new Stack<FormattedToken>(tokensStorage.UnclosedTokens);
+            while (reversedOpenedSelections.Count > 0)
             {
-                var selection = openedSelections.Pop();
-                var token = unclosedTokens.Pop();
+                var selection = reversedOpenedSelections.Pop();
+                var token = reversedUnclosedTokens.Pop();
                 yield return new RawToken(selection.OpeningTag.Name);
                 foreach (var subToken in token.Body)
                 {

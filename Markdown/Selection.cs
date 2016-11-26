@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Markdown.Tags;
 
 namespace Markdown
 {
-    // CR: Visibility
-    class Selection
+    public class Selection
     {
         public Tag OpeningTag { get; }
         public Tag ClosingTag { get; }

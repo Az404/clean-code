@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Markdown.Tokens;
 using static System.String;
 
 namespace Markdown
 {
-    public class HtmlRenderer
+    public class HtmlRenderer : ITokenRenderer
     {
         private readonly SelectionAttribute[] customAttributes;
 
@@ -31,20 +32,20 @@ namespace Markdown
         {
             var result = new StringBuilder();
             foreach (var token in tokens)
-            {
-                // CR: Everything unsafe should be well-separated, some kinda factory/wrapper
-                // CR: Also it violates open/closed principle
-                if (token is RawToken)
-                    result.Append(((RawToken)token).Value);
-                else if (token is FormattedToken)
-                {
-                    var formattedToken = (FormattedToken) token;
-                    var renderedBody = Render(formattedToken.Body);
-                    var attributes = customAttributes.Concat(formattedToken.Attributes);
-                    result.Append(WrapWithTag(renderedBody, formattedToken.Type, attributes));
-                }
-            }
+                result.Append(token.Render(this));
             return result.ToString();
+        }
+
+        public string Render(RawToken token)
+        {
+            return token.Value;
+        }
+
+        public string Render(FormattedToken token)
+        {
+            var renderedBody = Render(token.Body);
+            var attributes = customAttributes.Concat(token.Attributes);
+            return WrapWithTag(renderedBody, token.Type, attributes);
         }
 
         public static string WrapWithTag(string body, SelectionType selectionType, IEnumerable<SelectionAttribute> attributes)

@@ -2,9 +2,14 @@
 {
     public struct Cursor
     {
-        // CR: Public non-readonly fields - bad practice
-        public string Text;
-        public int Position;
+        public string Text { get; }
+        public int Position { get; set; }
+
+        public Cursor(string text, int position)
+        {
+            Text = text;
+            Position = position;
+        }
 
         public bool EndOfString => Position >= Text.Length;
 
@@ -15,6 +20,8 @@
 
         public bool StartsWithFromCurrent(string sample)
         {
+            if (Position < 0 || EndOfString)
+                return false;
             return Text.StartsWithFrom(Position, sample);
         }
     }

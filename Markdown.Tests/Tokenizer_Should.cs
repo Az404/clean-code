@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
 
 namespace Markdown.Tests
@@ -15,23 +13,23 @@ namespace Markdown.Tests
         {
             return new Tokenizer(input).ReadUntil(stopChars);
         }
-
-        // CR: Make two tests with different names
-        private static IEnumerable<TestCaseData> ReadUntilLambdaIsTrue_TestCases()
+        
+        [Test]
+        public void ReadString_UntilLambdaIsTrue_WhenOrdinaryLambda()
         {
-            yield return new TestCaseData("0120123456", (Func<char, bool>) (c => int.Parse(c.ToString()) > 2))
-                .Returns("012012")
-                .SetName("when ordinary lambda");
-
-            yield return new TestCaseData("abc", (Func<char, bool>)(c => false))
-                .Returns("abc")
-                .SetName("when lambda is always false");
+            new Tokenizer("0120123456")
+                .ReadUntil(c => int.Parse(c.ToString()) > 2)
+                .Should()
+                .Be("012012");
         }
 
-        [TestCaseSource(nameof(ReadUntilLambdaIsTrue_TestCases))]
-        public string ReadString_UntilLambdaIsTrue(string input, Func<char, bool> isStopChar)
+        [Test]
+        public void ReadString_UntilEnd_WhenLambdaIsAlwaysFalse()
         {
-            return new Tokenizer(input).ReadUntil(isStopChar);
+            new Tokenizer("abc")
+                .ReadUntil(c => false)
+                .Should()
+                .Be("abc");
         }
 
         [Test]

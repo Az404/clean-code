@@ -1,6 +1,4 @@
-﻿// CR: VVVV Unused reference there
-using System;
-using System.Linq;
+﻿using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -97,12 +95,6 @@ namespace Markdown.Tests
             return md.Render(text);
         }
 
-        // CR: Order
-        private void RenderSamples(string sample, int count)
-        {
-            md.Render(string.Concat(Enumerable.Repeat(sample, count)));
-        }
-
         [TestCase(100)]
         [TestCase(200)]
         [TestCase(400)]
@@ -141,6 +133,11 @@ namespace Markdown.Tests
         public void RenderTextInLinearTime_WhenManySimilarTags(int count)
         {
             RenderSamples("_a_a", count);
+        }
+
+        private void RenderSamples(string sample, int count)
+        {
+            md.Render(string.Concat(Enumerable.Repeat(sample, count)));
         }
     }
 }
